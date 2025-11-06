@@ -156,7 +156,6 @@ def load_model(param):
         # construct checkpoint path
         checkpoint_path = os.path.join(deimv2_dir,"..",'weights', checkpoint_filename)
 
-
         if param.config_file:
             config_path = param.config_file
             if not os.path.exists(config_path):
@@ -165,10 +164,6 @@ def load_model(param):
             config_path = os.path.join(deimv2_dir, 'configs', 'deimv2', config_filename)
         # Try to download model if it doesn't exist and no custom path is provided
         download_model(checkpoint_filename, checkpoint_path)
-
-        # Load config with resume parameter (checkpoint path)
-        # args.resume is always True/checkpoint path based on user's requirement
-        cfg = YAMLConfig(config_path, resume=True)
 
     else: # use custom model
         checkpoint_path = param.model_weight_file
@@ -181,10 +176,10 @@ def load_model(param):
             config_path = param.config_file
             if not os.path.exists(config_path):
                 raise FileNotFoundError(f"Config file not found: {config_path}")
-            else:
-                # Load config with YAMLConfig to maintain consistency with default model path
-                # Pass resume=True since checkpoint loading is handled separately
-                cfg = YAMLConfig(config_path, resume=True)
+
+    # Load config with resume parameter (checkpoint path)
+    # args.resume is always True/checkpoint path based on user's requirement
+    cfg = YAMLConfig(config_path, resume=True)
 
     # Disable HGNetv2 pretrained if using HGNetv2 backbone
     if 'HGNetv2' in cfg.yaml_cfg:
