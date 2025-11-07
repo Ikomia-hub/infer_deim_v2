@@ -123,8 +123,7 @@ class InferDeimV2(dataprocess.CObjectDetectionTask):
         vit_backbone = param.model_name in dinov3_models
 
         # Create transforms
-        size = ([640,640])
-        # size = (self.size)
+        size = (self.size)
         transforms = T.Compose([
             T.Resize(size),
             T.ToTensor(),
