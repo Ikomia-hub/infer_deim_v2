@@ -177,6 +177,12 @@ def load_model(param):
             if not os.path.exists(config_path):
                 raise FileNotFoundError(f"Config file not found: {config_path}")
 
+    # Import engine modules to trigger @register decorators
+    # This must happen before YAMLConfig is instantiated
+    import engine
+    from engine import optim, data, deim
+    import engine.backbone  # Import backbone module to trigger all @register decorators
+    
     # Load config with resume parameter (checkpoint path)
     # args.resume is always True/checkpoint path based on user's requirement
     cfg = YAMLConfig(config_path, resume=True)
