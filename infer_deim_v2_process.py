@@ -17,7 +17,7 @@ class InferDeimV2Param(CWorkflowTaskParam):
     def __init__(self):
         CWorkflowTaskParam.__init__(self)
         self.model_name = "s_coco"
-        self.model_weight_file  = ""
+        self.model_weight_file = ""
         self.cuda = torch.cuda.is_available()
         self.conf_thres = 0.45
         self.config_file = ""
@@ -45,6 +45,8 @@ class InferDeimV2Param(CWorkflowTaskParam):
 # - Class which implements the algorithm
 # - Inherits PyCore.CWorkflowTask or derived from Ikomia API
 # --------------------
+
+
 class InferDeimV2(dataprocess.CObjectDetectionTask):
 
     def __init__(self, name, param):
@@ -92,7 +94,6 @@ class InferDeimV2(dataprocess.CObjectDetectionTask):
         self.begin_task_run()
         param = self.get_param_object()
 
-
         input_image = self.get_input(0)
         src_image = input_image.get_image()
 
@@ -108,11 +109,15 @@ class InferDeimV2(dataprocess.CObjectDetectionTask):
 
             param.update = False
 
-        # Convert numpy array to PIL Image
+        # Convert numpy array to PIL Image and ensure RGB format (3 channels)
         if len(src_image.shape) == 3 and src_image.shape[2] == 3:
             src_image = Image.fromarray(src_image).convert('RGB')
+        elif len(src_image.shape) == 3 and src_image.shape[2] == 4:
+            # Handle RGBA images - convert to RGB
+            src_image = Image.fromarray(src_image).convert('RGB')
         else:
-            src_image = Image.fromarray(src_image)
+            # Handle grayscale or other formats - convert to RGB
+            src_image = Image.fromarray(src_image).convert('RGB')
 
         # Get original image dimensions
         orig_w, orig_h = src_image.size

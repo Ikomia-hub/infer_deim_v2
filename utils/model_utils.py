@@ -3,12 +3,12 @@
 # deimv2_hgnetv2_pico_coco.pth https://drive.google.com/file/d/1PXpUxYSnQO-zJHtzrCPqQZ3KKatZwzFT/view
 # deimv2_hgnetv2_n_coco.pth https://drive.google.com/file/d/1G_Q80EVO4T7LZVPfHwZ3sT65FX5egp9K/view
 # deimv2_dinov3_s_coco.pth https://drive.google.com/file/d/1MDOh8UXD39DNSew6rDzGFp1tAVpSGJdL/view
-# deimv2_dinov3_m_coco.pth https://drive.google.com/file/d/1nPKDHrotusQ748O1cQXJfi5wdShq6bKp/view 
+# deimv2_dinov3_m_coco.pth https://drive.google.com/file/d/1nPKDHrotusQ748O1cQXJfi5wdShq6bKp/view
 # deimv2_dinov3_l_coco.pth https://drive.google.com/file/d/1dRJfVHr9HtpdvaHlnQP460yPVHynMray/view
 # deimv2_dinov3_x_coco.pth https://drive.google.com/file/d/1pTiQaBGt8hwtO0mbYlJ8nE-HGztGafS7/view
 
+from infer_deim_v2.DEIMv2.engine.core import YAMLConfig
 import os
-import sys
 import torch
 import torch.nn as nn
 import threading
@@ -18,8 +18,6 @@ import gdown
 # Add DEIMv2 to path
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 deimv2_dir = os.path.join(base_dir, 'DEIMv2')
-sys.path.append(os.path.abspath(deimv2_dir))
-from engine.core import YAMLConfig
 
 # Mapping from model_name to checkpoint filename and config filename
 # Format: model_name -> (checkpoint_filename, config_filename, backbone_type)
@@ -66,11 +64,11 @@ def _get_download_lock(file_path):
 def download_model(checkpoint_filename, checkpoint_path):
     """
     Download model from Google Drive if it doesn't exist.
-    
+
     Args:
         checkpoint_filename: Name of the checkpoint file
         checkpoint_path: Full path where the checkpoint should be saved
-        
+
     Raises:
         ImportError: If gdown is not installed
         ValueError: If checkpoint_filename is not in DRIVE_FILE_IDS
@@ -119,7 +117,8 @@ def download_model(checkpoint_filename, checkpoint_path):
 
             # Verify download succeeded
             if not os.path.exists(checkpoint_path):
-                raise RuntimeError(f"Download failed: {checkpoint_path} was not created")
+                raise RuntimeError(
+                    f"Download failed: {checkpoint_path} was not created")
 
             print(f"Successfully downloaded {checkpoint_filename}")
         except Exception as e:
@@ -129,60 +128,66 @@ def download_model(checkpoint_filename, checkpoint_path):
                     os.remove(checkpoint_path)
                 except:
                     pass
-            raise RuntimeError(f"Failed to download {checkpoint_filename}: {str(e)}")
+            raise RuntimeError(
+                f"Failed to download {checkpoint_filename}: {str(e)}")
 
 
 def load_model(param):
     """
     Load DEIMv2 model based on model_name parameter.
-    
+
     Args:
         param: InferDeimV2Param object containing model_name and other parameters
-        
+
     Returns:
         model: The loaded model (wrapped in Model class)
         postprocessor: The postprocessor for the model
     """
 
-
-    if not param.model_weight_file: # use default model
+    if not param.model_weight_file:  # use default model
         model_name = param.model_name
     # Check if model_name is in mapping
-        if model_name not in MODEL_MAPPING :
+        if model_name not in MODEL_MAPPING:
             raise ValueError(
                 f"Unknown model_name: {model_name}. Available models: {list(MODEL_MAPPING.keys())}")
         # map model_name to checkpoint_filename and config_filename
         checkpoint_filename, config_filename, _ = MODEL_MAPPING[model_name]
         # construct checkpoint path
-        checkpoint_path = os.path.join(deimv2_dir,"..",'weights', checkpoint_filename)
+        checkpoint_path = os.path.join(
+            deimv2_dir, "..", 'weights', checkpoint_filename)
 
         if param.config_file:
             config_path = param.config_file
             if not os.path.exists(config_path):
-                raise FileNotFoundError(f"Config file not found: {config_path}")
+                raise FileNotFoundError(
+                    f"Config file not found: {config_path}")
         else:
-            config_path = os.path.join(deimv2_dir, 'configs', 'deimv2', config_filename)
+            config_path = os.path.join(
+                deimv2_dir, 'configs', 'deimv2', config_filename)
         # Try to download model if it doesn't exist and no custom path is provided
         download_model(checkpoint_filename, checkpoint_path)
 
-    else: # use custom model
+    else:  # use custom model
         checkpoint_path = param.model_weight_file
         if not os.path.exists(checkpoint_path):
-            raise FileNotFoundError(f"Checkpoint file not found: {checkpoint_path}")
+            raise FileNotFoundError(
+                f"Checkpoint file not found: {checkpoint_path}")
         if not param.config_file:
             raise ValueError(
                 f"Config file not provided, please provide a config file or use a default model")
         else:
             config_path = param.config_file
             if not os.path.exists(config_path):
-                raise FileNotFoundError(f"Config file not found: {config_path}")
+                raise FileNotFoundError(
+                    f"Config file not found: {config_path}")
 
     # Import engine modules to trigger @register decorators
     # This must happen before YAMLConfig is instantiated
-    import engine
-    from engine import optim, data, deim
-    import engine.backbone  # Import backbone module to trigger all @register decorators
-    
+    import infer_deim_v2.DEIMv2.engine
+    from infer_deim_v2.DEIMv2.engine import optim, data, deim
+    # Import backbone module to trigger all @register decorators
+    import infer_deim_v2.DEIMv2.engine.backbone
+
     # Load config with resume parameter (checkpoint path)
     # args.resume is always True/checkpoint path based on user's requirement
     cfg = YAMLConfig(config_path, resume=True)
@@ -222,7 +227,8 @@ def load_model(param):
         # Try to extract from dataloader transforms
         for loader_key in ['val_dataloader', 'train_dataloader']:
             loader = cfg.yaml_cfg.get(loader_key, {})
-            ops = loader.get('dataset', {}).get('transforms', {}).get('ops', [])
+            ops = loader.get('dataset', {}).get(
+                'transforms', {}).get('ops', [])
             for op in ops:
                 if isinstance(op, dict) and op.get('type') == 'Resize':
                     size = op.get('size')
