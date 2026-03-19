@@ -1,13 +1,14 @@
 import copy
 import os
-import numpy as np
 
 import torch
 import yaml
 import torchvision.transforms as T
 from PIL import Image
+
 from ikomia import core, dataprocess, utils
 from ikomia.core import CWorkflowTaskParam
+
 from infer_deim_v2.utils.model_utils import load_model
 from infer_deim_v2.utils.coco_labels import COCO_CLASSES
 
@@ -193,7 +194,7 @@ class InferDeimV2Factory(dataprocess.CTaskFactory):
         self.info.short_description = "Infer DEIMv2: Real-Time Object Detection Meets DINOv3"
         # relative path -> as displayed in Ikomia Studio algorithm tree
         self.info.path = "Plugins/Python/Detection"
-        self.info.version = "1.0.1"
+        self.info.version = "1.1.0"
         self.info.icon_path = "images/icon.png"
         self.info.authors = "Huang, Shihua and Hou, Yongjie and Liu, Longfei and Yu, " \
                             "Xuanlong and Shen, Xi"
@@ -203,7 +204,7 @@ class InferDeimV2Factory(dataprocess.CTaskFactory):
         self.info.license = "Apache 2.0"
 
         # Ikomia API compatibility
-        self.info.min_ikomia_version = "0.15.0"
+        self.info.min_ikomia_version = "0.16.0"
 
         # Python compatibility
         self.info.min_python_version = "3.10.0"

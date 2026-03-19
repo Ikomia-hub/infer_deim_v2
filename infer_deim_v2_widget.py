@@ -1,10 +1,12 @@
+# PyQt GUI framework
+from PyQt6.QtWidgets import *
+
+from torch.cuda import is_available
+
 from ikomia import core, dataprocess
 from ikomia.utils import pyqtutils, qtconversion
-from infer_deim_v2.infer_deim_v2_process import InferDeimV2Param
 
-# PyQt GUI framework
-from PyQt5.QtWidgets import *
-from torch.cuda import is_available
+from infer_deim_v2.infer_deim_v2_process import InferDeimV2Param
 
 
 # --------------------
@@ -56,7 +58,7 @@ class InferDeimV2Widget(core.CWorkflowTaskWidget):
         self.browse_weight_file = pyqtutils.BrowseFileWidget(
             path=self.parameters.model_weight_file,
             tooltip="Select model weight file",
-            mode=QFileDialog.ExistingFile
+            mode=QFileDialog.FileMode.ExistingFile
         )
         row = self.grid_layout.rowCount()
         self.grid_layout.addWidget(self.label_hyp, row, 0)
@@ -67,7 +69,7 @@ class InferDeimV2Widget(core.CWorkflowTaskWidget):
         self.browse_config_file = pyqtutils.BrowseFileWidget(
             path=self.parameters.config_file,
             tooltip="Select config file",
-            mode=QFileDialog.ExistingFile
+            mode=QFileDialog.FileMode.ExistingFile
         )
         row = self.grid_layout.rowCount()
         self.grid_layout.addWidget(self.label_config_file, row, 0)
